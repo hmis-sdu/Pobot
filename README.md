@@ -1,9 +1,10 @@
 # Pobot
 手机机器人arduino下位机源码以及安卓上位机示例APP
 
-#### 控制APP：[https://github.com/hmis-sdu/Pobot](https://github.com/hmis-sdu/Pobot)
-1. 里面 BluetoothChatService 用安卓原生API实现了蓝牙通讯，可以参考 MainActivity 和 JoystickView 如何使用；
-2. 命令可以用 string 构造，发送前要使用 getbytes() 方法转成字节流。
+#### 控制APP：[https://github.com/hmis-sdu/Pobot/tree/main/BluetoothTouch](https://github.com/hmis-sdu/Pobot/tree/main/BluetoothTouch)
+1. 里面 BluetoothChatService 用安卓原生API(https://developer.android.google.cn/guide/topics/connectivity/bluetooth)实现了蓝牙通讯服务，可以参考 MainActivity 和 JoystickView 如何使用；
+2. 命令可以用 string 构造，发送前要使用 getbytes() 方法转成字节流;
+3. 项目主要提供手机蓝牙参考，通过安卓手机如何发送命令，同时，只实现了 client 端，只能主动连接其它设备。
 
 #### 命令
 #### 1. 小车移动通用控制
