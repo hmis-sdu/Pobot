@@ -2,7 +2,7 @@
 手机机器人arduino下位机源码以及安卓上位机示例APP
 
 ## 面向对象架构
-!(架构图)[https://github.com/hmis-sdu/Pobot/blob/main/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E6%9E%B6%E6%9E%84/structure%20chart.png]
+![架构图](https://github.com/hmis-sdu/Pobot/blob/main/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E6%9E%B6%E6%9E%84/structure%20chart.png)
 
 #### 控制APP：[https://github.com/hmis-sdu/Pobot/tree/main/BluetoothTouch](https://github.com/hmis-sdu/Pobot/tree/main/BluetoothTouch)
 1. 里面 BluetoothChatService 用安卓原生API([https://developer.android.google.cn/guide/topics/connectivity/bluetooth](https://developer.android.google.cn/guide/topics/connectivity/bluetooth))实现了蓝牙通讯服务，可以参考 MainActivity 和 JoystickView 如何使用；
