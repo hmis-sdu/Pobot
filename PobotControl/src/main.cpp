@@ -102,7 +102,7 @@ void setup()
 
   Pos1 = IdealPos1, Pos2 = IdealPos2;
 
-  oneStep = 1;
+  oneStep = 10;
 
   for (int i = 0; i <= 75; i++) {
     servopulse(PIN1, Pos1);
