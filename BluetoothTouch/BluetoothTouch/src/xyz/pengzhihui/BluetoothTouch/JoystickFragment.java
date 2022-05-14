@@ -124,7 +124,30 @@ public class JoystickFragment extends Fragment implements JoystickView.OnJoystic
                             MainActivity.mChatService.write(MainActivity.sendStop);
                         else {
                             // 通过蓝牙发送命令
-                            String message = MainActivity.sendJoystickValues + d.format(xValue) + ',' + d.format(yValue) + ";";
+                            double x = xValue, y = yValue;
+
+                            double X = x * Math.cos(Math.PI / 4) - y * Math.sin(Math.PI / 4);
+                            double Y = y * Math.cos(Math.PI / 4) + x * Math.sin(Math.PI / 4);
+
+                            double Speed = 255.0 * Math.sqrt(X * X + Y * Y);
+                            String Dir = "d";
+                            if (X > 0.0 && Y > 0.0)
+                            { // 右转
+                                Dir = "d";
+                            }
+                            else if (X < 0.0 && Y > 0.0)
+                            { // 前进
+                                Dir = "w";
+                            }
+                            else if (X < 0.0 && Y < 0.0)
+                            { // 左转
+                                Dir = "a";
+                            }
+                            else if (X > 0.0 && Y < 0.0)
+                            { // 后退
+                                Dir = "s";
+                            }
+                            String message = MainActivity.generalMoveControl + Dir + ',' + d.format(Speed) + ";";
                             MainActivity.mChatService.write(message);
                             Log.d("unaughty", "run: " + message);
                         }

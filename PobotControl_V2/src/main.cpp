@@ -64,6 +64,7 @@ void cmdInterpreter::run() {
     if (c == ';')
     {
       // 接收到命令结束符进行命令解析
+      Serial.println(cmd);
       cmd[cnt] = c;
       cnt = 0;
 
@@ -90,15 +91,19 @@ void setup() {
   pinMode(M2, OUTPUT);
 
   Serial.begin(9600);
+
+  Serial.println("Hello!");
 }
 
 
-// void test1();
-// void test2();
+void test1();
+void test2();
 
 void loop() {
   // test1();
   // test2();
+
+  cr.run();
 }
 
 
@@ -106,7 +111,7 @@ void loop() {
 
 
 
-/*
+
 void test1() {
   { int value;
     for (value = 0 ; value <= 255; value += 5)
@@ -147,4 +152,3 @@ void test2() {
   ml.moveExec();
   delay(3000);   
 }
-*/

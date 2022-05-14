@@ -128,6 +128,7 @@ public class MainActivity extends AppCompatActivity
     public final static String sendStop = "CS,;";
     public final static String sendIMUValues = "CM,";
     public final static String sendJoystickValues = "CJ,";
+    public final static String generalMoveControl = "GMC,";
     public final static String sendPairWithWii = "CPW;";
     public final static String sendPairWithPS4 = "CPP;";
 

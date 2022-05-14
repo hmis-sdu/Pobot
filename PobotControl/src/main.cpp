@@ -85,6 +85,8 @@ cloudExec(): 云台执行单元
 servopulse(): 数字信号转为模拟信号（使用数字引脚输出 PWM 信号）
 **********  工作函数  **********/
 
+void servopulse(int, int);
+
 void setup()
 {
   // 初始化
