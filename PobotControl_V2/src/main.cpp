@@ -1,60 +1,31 @@
 #include <Arduino.h>
-
-
-#define E1 10
-#define M1 12
-#define E2 11
-#define M2 13
+#include <JY901.h>
+#include "Define.h"
+#include "moveControler.h"
+#include "PID.h"
 
 /*
 移动控制
 蓝牙通讯
+pid控制精确转向 todo
+  实际调控车轮转速
+  蓝牙调试pid 
 */
-
-struct moveControl
-{
-    char Dir;
-    int Speed;
-
-    void moveExec();
-};
-
-void moveControl::moveExec() {
-  if (Dir == 'd')
-  { // 右转
-    digitalWrite(M1, LOW);
-    digitalWrite(M2, LOW);
-  }
-  else if (Dir == 'w')
-  { // 前进
-    digitalWrite(M1, LOW);
-    digitalWrite(M2, HIGH);
-  }
-  else if (Dir == 'a')
-  { // 左转
-    digitalWrite(M1, HIGH);
-    digitalWrite(M2, HIGH);
-  }
-  else if (Dir == 's')
-  { // 后退
-    digitalWrite(M1, HIGH);
-    digitalWrite(M2, LOW);
-  }
-
-  analogWrite(E1, Speed);
-  analogWrite(E2, Speed);
-}
 
 struct cmdInterpreter
 {
+    cmdInterpreter(moveControl *ml, PID *mpid) {
+      this->ml = ml;
+      this->mpid = mpid;
+    }
     char cmd[50];
     String type;
     int cnt;
 
     void run();
 
-  private:
-    moveControl ml;
+    moveControl *ml;
+    PID *mpid;
 };
 
 void cmdInterpreter::run() {
@@ -70,10 +41,40 @@ void cmdInterpreter::run() {
 
       type = strtok(cmd, ",");
 
-      if (type = "GMC") {
-        ml.Dir = (strtok(NULL, ","))[0];
-        ml.Speed = atoi(strtok(NULL, ";"));
-        ml.moveExec();
+      if (type = "GMC") {   // general move control: 通用移动控制
+        ml->Dir = (strtok(NULL, ","))[0];
+        ml->Speed = atoi(strtok(NULL, ";"));
+        ml->moveExec();
+      }
+      // untested
+      else if (type == "PS") {    // precisely steering：精确转向控制
+        // 精确转向(方向，旋转角)
+        float nowVal = (float)JY901.stcAngle.Angle[2] / 32768 * 180;  // 获取当前航偏角
+        ml->Dir = (strtok(NULL, ","))[0];
+        float delta = atoi(strtok(NULL, ";"));
+        float exVal;
+        if (ml->Dir == 'a') { // 假设逆时针和0点形成角为航偏角,范围为[0, 360)
+          exVal = nowVal - delta;
+          if (exVal < 0.0f) exVal += 360.0f;
+        }
+        else if (ml->Dir == 'd') {
+          exVal = nowVal + delta;
+          if (exVal > 360.0f) exVal -= 360.0f;
+        }
+        mpid->init(nowVal, exVal);
+
+        while (true) {
+          float Gyroz = (float)JY901.stcAngle.Angle[2] / 32768 * 180;
+          mpid->GyroRealize(Gyroz);
+          mpid->out2Speed(ml);    // 将pid运算结果转化为移动控制参数
+          ml->moveExec();   
+          if (mpid->out < 3.0f) break;
+        }
+      }
+      else if (type == "SP") {  // set parameter: 设置(pid)参数
+        mpid->Kp = atoi(strtok(NULL, ","));
+        mpid->Ki = atoi(strtok(NULL, ","));
+        mpid->Kd = atoi(strtok(NULL, ";"));
       }
     }
     else
@@ -82,9 +83,6 @@ void cmdInterpreter::run() {
     }
   }
 }
-
-moveControl ml;
-cmdInterpreter cr;
 
 void setup() {
   pinMode(M1, OUTPUT);
@@ -95,6 +93,10 @@ void setup() {
   Serial.println("Hello!");
 }
 
+moveControl ml;
+PID mpid(3.0f, 0, 0);
+cmdInterpreter cr(&ml, &mpid);
+
 
 void test1();
 void test2();
@@ -104,51 +106,4 @@ void loop() {
   // test2();
 
   cr.run();
-}
-
-
-
-
-
-
-
-void test1() {
-  { int value;
-    for (value = 0 ; value <= 255; value += 5)
-    {
-      digitalWrite(M1, HIGH);
-      digitalWrite(M2, HIGH);
-      analogWrite(E1, value); //PWM调速
-      analogWrite(E2, value); //PWM调速
-      delay(30);
-    }
-    delay(1000);
-  }
-  { int value;
-    for (value = 0 ; value <= 255; value += 5)
-    {
-      digitalWrite(M1, LOW);
-      digitalWrite(M2, LOW);
-      analogWrite(E1, value); //PWM调速
-      analogWrite(E2, value); //PWM调速
-      delay(30);
-    }
-    delay(1000);
-  }
-}
-
-void test2() {
-  ml.Speed = 255;
-  ml.Dir = 'w';
-  ml.moveExec();
-  delay(3000);
-  ml.Dir = 's';
-  ml.moveExec();
-  delay(3000);
-  ml.Dir = 'a';
-  ml.moveExec();
-  delay(3000);
-  ml.Dir = 'd';
-  ml.moveExec();
-  delay(3000);   
 }
