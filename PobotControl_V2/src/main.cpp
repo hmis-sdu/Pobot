@@ -49,29 +49,36 @@ void cmdInterpreter::run() {
       // untested
       else if (type == "PS") {    // precisely steering：精确转向控制
         // 精确转向(方向，旋转角)
-        float nowVal = (float)JY901.stcAngle.Angle[2] / 32768 * 180;  // 获取当前航偏角
+        // 命令格式：PS,a,45;
+        float nowVal = (float)JY901.stcAngle.Angle[2] / 32768 * 180 + 180.0f;  // 获取当前航偏角,修正至[0, 360)
+        Serial.println(nowVal);
         ml->Dir = (strtok(NULL, ","))[0];
         float delta = atoi(strtok(NULL, ";"));
         float exVal;
-        if (ml->Dir == 'a') { // 假设逆时针和0点形成角为航偏角,范围为[0, 360)
+
+        if (ml->Dir == 'd') { // 假设逆时针和0点形成角为航偏角,范围为[0, 360)
           exVal = nowVal - delta;
           if (exVal < 0.0f) exVal += 360.0f;
         }
-        else if (ml->Dir == 'd') {
+        else if (ml->Dir == 'a') {
           exVal = nowVal + delta;
           if (exVal > 360.0f) exVal -= 360.0f;
         }
-        mpid->init(nowVal, exVal);
+
+        mpid->init(nowVal, exVal);  // 初始化pid计算单元
 
         while (true) {
-          float Gyroz = (float)JY901.stcAngle.Angle[2] / 32768 * 180;
+          float Gyroz = (float)JY901.stcAngle.Angle[2] / 32768 * 180 + 180.0f;
           mpid->GyroRealize(Gyroz);
           mpid->out2Speed(ml);    // 将pid运算结果转化为移动控制参数
+          Serial.println(mpid->out);
           ml->moveExec();   
           if (mpid->out < 3.0f) break;
+          delay(10);
         }
       }
       else if (type == "SP") {  // set parameter: 设置(pid)参数
+        // 命令格式：SP,3,0,0;
         mpid->Kp = atoi(strtok(NULL, ","));
         mpid->Ki = atoi(strtok(NULL, ","));
         mpid->Kd = atoi(strtok(NULL, ";"));
@@ -88,7 +95,7 @@ void setup() {
   pinMode(M1, OUTPUT);
   pinMode(M2, OUTPUT);
 
-  Serial.begin(9600);
+  Serial.begin(115200);   // 是否会影响蓝牙串口?
 
   Serial.println("Hello!");
 }
@@ -105,5 +112,23 @@ void loop() {
   // test1();
   // test2();
 
+  /*float nowVal = (float)JY901.stcAngle.Angle[2] / 32768 * 180 + 180.0f;
+  Serial.println(nowVal);
+  delay(500);*/
+
   cr.run();
+}
+
+/*
+  SerialEvent occurs whenever a new data comes in the
+ hardware serial RX.  This routine is run between each
+ time loop() runs, so using delay inside loop can delay
+ response.  Multiple bytes of data may be available.
+ */
+void serialEvent()
+{
+  while (Serial.available())
+  {
+    JY901.CopeSerialData(Serial.read()); // Call JY901 data cope function
+  }
 }
